@@ -69,3 +69,15 @@ uint64 sys_uptime(void) {
   release(&tickslock);
   return xticks;
 }
+
+uint64 sys_rename(void) {
+  char name[16];
+  int len = argstr(0, name, MAXPATH);
+  if (len < 0) {
+    return -1;
+  }
+  struct proc *p = myproc();
+  memmove(p->name, name, len);
+  p->name[len] = '\0';
+  return 0;
+}

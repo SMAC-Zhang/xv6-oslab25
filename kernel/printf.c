@@ -52,6 +52,72 @@ static void printptr(uint64 x) {
   for (i = 0; i < (sizeof(uint64) * 2); i++, x <<= 4) consputc(digits[x >> (sizeof(uint64) * 8 - 4)]);
 }
 
+void info_with_color(char *fmt, ...) {
+  va_list ap;
+  int i, c, locking;
+  char *s;
+#ifndef LAB_SYSCALL_TEST
+  static const char *color = "\033[0;36m";
+  static const char *info = "[INFO] ";
+  static const char *rst_str = "\033[0m";
+#endif
+
+  locking = pr.locking;
+  if (locking) acquire(&pr.lock);
+
+  if (fmt == 0) panic("null fmt");
+
+#ifndef LAB_SYSCALL_TEST
+  for (i = 0; color[i] != 0; i++) {
+    consputc(color[i]);
+  }
+  for (i = 0; info[i] != 0; i++) {
+    consputc(info[i]);
+  }
+#endif
+
+  va_start(ap, fmt);
+  for (i = 0; (c = fmt[i] & 0xff) != 0; i++) {
+    if (c != '%') {
+      consputc(c);
+      continue;
+    }
+    c = fmt[++i] & 0xff;
+    if (c == 0) break;
+    switch (c) {
+      case 'd':
+        printint(va_arg(ap, int), 10, 1);
+        break;
+      case 'x':
+        printint(va_arg(ap, int), 16, 1);
+        break;
+      case 'p':
+        printptr(va_arg(ap, uint64));
+        break;
+      case 's':
+        if ((s = va_arg(ap, char *)) == 0) s = "(null)";
+        for (; *s; s++) consputc(*s);
+        break;
+      case '%':
+        consputc('%');
+        break;
+      default:
+        // Print unknown % sequence to draw attention.
+        consputc('%');
+        consputc(c);
+        break;
+    }
+  }
+
+#ifndef LAB_SYSCALL_TEST
+  for (i = 0; rst_str[i] != 0; i++) {
+    consputc(rst_str[i]);
+  }
+#endif
+
+  if (locking) release(&pr.lock);
+}
+
 // Print to the console. only understands %d, %x, %p, %s.
 void
 #ifdef TEST

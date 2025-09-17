@@ -102,7 +102,7 @@ void go(int which_child) {
         printf("grind: fork failed\n");
         exit(1);
       }
-      wait(0);
+      wait(0, 0);
     } else if (what == 14) {
       int pid = fork();
       if (pid == 0) {
@@ -113,7 +113,7 @@ void go(int which_child) {
         printf("grind: fork failed\n");
         exit(1);
       }
-      wait(0);
+      wait(0, 0);
     } else if (what == 15) {
       sbrk(6011);
     } else if (what == 16) {
@@ -132,7 +132,7 @@ void go(int which_child) {
         exit(1);
       }
       kill(pid);
-      wait(0);
+      wait(0, 0);
     } else if (what == 18) {
       int pid = fork();
       if (pid == 0) {
@@ -142,7 +142,7 @@ void go(int which_child) {
         printf("grind: fork failed\n");
         exit(1);
       }
-      wait(0);
+      wait(0, 0);
     } else if (what == 19) {
       int fds[2];
       if (pipe(fds) < 0) {
@@ -163,7 +163,7 @@ void go(int which_child) {
       }
       close(fds[0]);
       close(fds[1]);
-      wait(0);
+      wait(0, 0);
     } else if (what == 20) {
       int pid = fork();
       if (pid == 0) {
@@ -178,7 +178,7 @@ void go(int which_child) {
         printf("fork failed\n");
         exit(1);
       }
-      wait(0);
+      wait(0, 0);
     } else if (what == 21) {
       unlink("c");
       // should always succeed. check that there are free i-nodes,
@@ -269,8 +269,8 @@ void go(int which_child) {
       read(bb[0], buf + 1, 1);
       close(bb[0]);
       int st1, st2;
-      wait(&st1);
-      wait(&st2);
+      wait(&st1, 0);
+      wait(&st2, 0);
       if (st1 != 0 || st2 != 0 || strcmp(buf, "hi") != 0) {
         printf("exec pipeline failed %d %d \"%s\"\n", st1, st2, buf);
         exit(1);
@@ -306,13 +306,13 @@ void iter() {
   }
 
   int st1 = -1;
-  wait(&st1);
+  wait(&st1, 0);
   if (st1 != 0) {
     kill(pid1);
     kill(pid2);
   }
   int st2 = -1;
-  wait(&st2);
+  wait(&st2, 0);
 
   exit(0);
 }
@@ -325,7 +325,7 @@ int main() {
       exit(0);
     }
     if (pid > 0) {
-      wait(0);
+      wait(0, 0);
     }
     sleep(20);
   }

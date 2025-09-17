@@ -30,7 +30,7 @@ def test(points, title=None, parent=None):
         if parent:
             title = "  " + title
 
-        def run_test():
+        def run_test(options):
             global TOTAL, POSSIBLE, CURRENT_TEST
 
             # Handle test dependencies
@@ -52,6 +52,7 @@ def test(points, title=None, parent=None):
             try:
                 if parent_failed:
                     raise AssertionError('Parent failed: %s' % parent.__name__)
+                run_test.options = options
                 fn()
             except AssertionError as e:
                 fail = str(e)
@@ -105,6 +106,7 @@ def run_tests():
                       help="print commands")
     parser.add_option("--color", choices=["never", "always", "auto"],
                       default="auto", help="never, always, or auto")
+    parser.add_option("--toolprefix", default="riscv64-unknown-elf-")
     (options, args) = parser.parse_args()
 
     # Start with a full build to catch build errors
@@ -118,7 +120,7 @@ def run_tests():
     try:
         for test in TESTS:
             if not limit or any(l in test.title.lower() for l in limit):
-                test()
+                test(options=options)
         if not limit:
             print("Score: %d/%d" % (TOTAL, POSSIBLE))
     except KeyboardInterrupt:

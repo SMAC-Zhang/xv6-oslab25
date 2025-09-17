@@ -70,12 +70,17 @@ OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 GDB = $(TOOLPREFIX)gdb
 
-CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb -DTEST
+CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb
+
+ifdef LAB_SYSCALL_TEST
+CFLAGS += -DLAB_SYSCALL_TEST
+endif
 
 GCC_VER12 := $(shell expr `$(CC) -dumpfullversion -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/'` \>= 120000)
 ifeq "$(GCC_VER12)" "1"
 CFLAGS += -Wno-error=infinite-recursion
 endif
+
 
 ifdef LAB
 LABUPPER = $(shell echo $(LAB) | tr a-z A-Z)
@@ -157,12 +162,9 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
+	$U/_waittest\
+	$U/_exittest\
 
-ifeq ($(LAB),syscall)
-UPROGS += \
-	$U/_trace\
-	$U/_sysinfotest
-endif
 
 ifeq ($(LAB),trap)
 UPROGS += \
@@ -249,7 +251,7 @@ GDBARGS += -ex 'set riscv use-compressed-breakpoints yes'
 
 
 gdb: 
-	$(GDB) $(GDBARGS)
+	$(GDB)
 
 ##
 ##  FOR testing lab grading script
@@ -266,7 +268,13 @@ grade:
 	@echo $(MAKE) clean
 	@$(MAKE) clean || \
           (echo "'make clean' failed.  HINT: Do you have another running instance of xv6?" && exit 1)
-	./grade-lab-$(LAB) $(GRADEFLAGS)
+	./grade-lab-$(LAB) $(GRADEFLAGS) --toolprefix $(TOOLPREFIX)
+
+format:
+	python3 clang-format.py
+
+diff:
+	git diff origin/syscall HEAD > commit.patch
 
 format:
 	python3 clang-format.py

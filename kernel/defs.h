@@ -90,6 +90,10 @@ void            _printf(const char*, unsigned int, char*, ... );
 #define printf(...) _printf(__VA_ARGS__)
 void            _printf(char*, ... );
 #endif
+
+#define exit_info(...) info_with_color(__VA_ARGS__)
+void            info_with_color(char*, ... );
+
 void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
 

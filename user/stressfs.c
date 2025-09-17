@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
   for (i = 0; i < 20; i++) read(fd, data, sizeof(data));
   close(fd);
 
-  wait(0);
+  wait(0, 0);
 
   exit(0);
 }
