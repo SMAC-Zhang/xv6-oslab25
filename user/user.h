@@ -1,5 +1,6 @@
 #pragma once
 #include "kernel/types.h"
+#include "kernel/sysinfo.h"
 
 struct stat;
 struct rtcdate;
