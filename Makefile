@@ -283,8 +283,8 @@ format:
 ## FOR web handin
 ##
 
-diff:
-	git diff origin/util HEAD > commit.patch
+# diff:
+# 	git diff origin/util HEAD > commit.patch
 
 WEBSUB := https://6828.scripts.mit.edu/2020/handin.py
 
