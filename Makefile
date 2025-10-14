@@ -164,7 +164,8 @@ UPROGS=\
 	$U/_zombie\
 	$U/_waittest\
 	$U/_exittest\
-
+	$U/_stat \
+	$U/_schedtest\
 
 ifeq ($(LAB),trap)
 UPROGS += \
@@ -274,17 +275,12 @@ format:
 	python3 clang-format.py
 
 diff:
-	git diff origin/syscall HEAD > commit.patch
-
-format:
-	python3 clang-format.py
+	git diff origin/scheduler HEAD > commit.patch
 
 ##
 ## FOR web handin
 ##
 
-# diff:
-# 	git diff origin/util HEAD > commit.patch
 
 WEBSUB := https://6828.scripts.mit.edu/2020/handin.py
 
