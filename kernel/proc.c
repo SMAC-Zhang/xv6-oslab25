@@ -18,6 +18,7 @@ struct spinlock pid_lock;
 extern void forkret(void);
 static void wakeup1(struct proc *chan);
 static void freeproc(struct proc *p);
+void update_state(struct proc *p, enum procstate newstate);
 
 extern char trampoline[];  // trampoline.S
 
@@ -618,4 +619,9 @@ void procdump(void) {
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// you must hold p->lock to call this function
+void update_state(struct proc *p, enum procstate newstate) {
+  // TODO
 }

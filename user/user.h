@@ -28,6 +28,9 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int rename(const char*);
+int pstate(int pid, uint* running_time, uint* runnable_time, uint* sleep_time);
+int cpustate(uint* cpu_time);
+int setnice(int nice);
 
 // ulib.c
 int stat(const char*, struct stat*);

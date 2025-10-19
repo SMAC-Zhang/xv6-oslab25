@@ -16,7 +16,6 @@ int nice;
 
 uint64 big_calculation() {
     uint64 i, j, sum = 0;
-    static uint cnt = 0;
     for (i = 0; i < MAGIC_NUM; i++) {
         for (j = 0; j < i; j++) {
             if (j & 1) {
@@ -25,7 +24,6 @@ uint64 big_calculation() {
                 sum += j;
             }
         }
-        cnt++;
         sum *= i;
         sum /= (i - j + 1);
     }
@@ -61,7 +59,7 @@ void test2() {
             exit(1);
         }
         if (mypid % 2 == 0 && sleeped == 0) {
-            sleep(mypid * 567);
+            sleep(1234);
             sleeped = 1;
         }
         up_time = uptime();
@@ -125,6 +123,23 @@ void cpubalance() {
     close(fd);
 }
 
+int create_fd(int idx) {
+    char filename[32] = {0};
+    itoa(idx, filename);
+    for (int j = 0; j < 32; ++j) {
+        if (filename[j] == 0) {
+            strcpy(filename + j, ".txt");
+            break;
+        }
+    }
+    int local_fd = open(filename, O_CREATE | O_RDWR);
+    if (local_fd < 0) {
+        printf("Error: open %s failed\n", filename);
+        exit(1);
+    }
+    return local_fd;
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         printf("Usage: stat <n> <test-type>\n");
@@ -135,7 +150,7 @@ int main(int argc, char *argv[]) {
     n = atoi(argv[1]);
     test_type = atoi(argv[2]);
 
-    if (n <= 0 || n > 32 || test_type <= 0 || test_type >= 3) {
+    if (n <= 0 || n > 32 || test_type <= 0 || test_type > 3) {
         printf("Error: Invalid parameters\n");
         exit(1);
     }
@@ -156,12 +171,13 @@ int main(int argc, char *argv[]) {
             exit(1);
     }
 
+    // 为避免输出冲突，父进程进程i的信息写进{i}p.txt
     for (int i = 0; i < n; ++i) {
         char filename[32] = {0};
         itoa(i, filename);
         for (int j = 0; j < 32; ++j) {
             if (filename[j] == 0) {
-                strcpy(filename + j, ".txt");
+                strcpy(filename + j, "p.txt");
                 break;
             }
         }
@@ -195,7 +211,7 @@ int main(int argc, char *argv[]) {
 
         pids[i] = pid;
         if (pid == 0) {
-            fd = fds[i];
+            fd = create_fd(i); // 为避免输出冲突，子进程将自己的信息写进{i}.txt
             mypid = getpid();
             if (test_type == 1) {
                 nice = mypid % 3 + 1; // 1, 2, 3
@@ -211,6 +227,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    // 对于测试2，3，父进程等待所有子进程退出，以检查是否有子进程被饿死
     if (test_type > 1) {
         for (int i = 0; i < n; ++i) {
             int exitcode;
@@ -224,7 +241,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-
+    // 对于测试1，父进程等待某个子进程退出，然后杀死其他子进程
     int exitcode;
     int pid = wait(&exitcode, 0);
     if (exitcode != 0) {
@@ -236,9 +253,12 @@ int main(int argc, char *argv[]) {
     }
     // ensure all children have been killed
     sleep(100);
+    cpubalance();
 
+    // 父进程输出所有子进程的状态
     for (int i = 0; i < n; ++i) {
         if (pids[i] == pid) {
+            close(fds[i]);
             continue;
         }
         uint running_time, runnable_time, sleep_time;
@@ -246,10 +266,17 @@ int main(int argc, char *argv[]) {
             printf("Error: pstate failed for PID %d\n", pids[i]);
             exit(1);
         }
-        fprintf(fds[i], "PID: %d, nice: %d, Running Time: %d, Runnable Time: %d, Sleep Time: %d\n", pids[i], nice, running_time, runnable_time, sleep_time);
+        fprintf(fds[i], "PID: %d, nice: %d, Running Time: %d, Runnable Time: %d, Sleep Time: %d\n", pids[i], pids[i] % 3 + 1, running_time, runnable_time, sleep_time);
         close(fds[i]);
     }
-    cpubalance();
+
+    char buf[512];
+    for (int i = 0; i < n; i++) {
+        int local_fd = create_fd(i);
+        read(local_fd, buf, 256);
+        fprintf(local_fd, "\n");
+        close(local_fd);
+    }
 
     exit(0);
 }

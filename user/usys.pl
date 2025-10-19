@@ -37,3 +37,6 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("rename");
+entry("pstate");
+entry("cpustate");
+entry("setnice");

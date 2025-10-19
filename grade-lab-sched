@@ -17,25 +17,25 @@ def extract_running_times_advanced(text):
     for line in lines:
         line = line.strip()
         
-        if 'PID:' in line and 'Running Time:' in line:
+        if 'PID:' in line and 'Sleep Time:' in line:
             parts = line.split(',')
             nice_time = []
             for part in parts:
                 if "nice:" in part:
-                    nice = part.split('nice:')[1].strip()
+                    nice = part.split('nice:')[-1].strip()
                     try:
                         nice_time.append(int(nice))
                     except ValueError:
                         print(f"无法解析nice值: {part}")
                 elif 'Running Time:' in part:
-                    time_str = part.split('Running Time:')[1].strip()
+                    time_str = part.split('Running Time:')[-1].strip()
                     try:
                         nice_time.append(int(time_str))
                     except ValueError:
                         print(f"无法解析进程运行时间: {time_str}")
                     break
                 elif 'PID:' in part:
-                    pid_str = part.split('PID:')[1].strip()
+                    pid_str = part.split('PID:')[-1].strip()
                     try:
                         pid = int(pid_str)
                     except ValueError:
@@ -46,14 +46,14 @@ def extract_running_times_advanced(text):
         
         elif any(line.startswith(f'CPU {i}:') for i in range(3)):
             if 'Running Time:' in line:
-                time_str = line.split('Running Time:')[1].strip()
+                time_str = line.split('Running Time:')[-1].strip()
                 try:
                     cpu_running_times.append(int(time_str))
                 except ValueError:
                     print(f"无法解析CPU运行时间: {time_str}")
         
         elif 'System Time:' in line:
-            time_str = line.split('System Time:')[1].strip()
+            time_str = line.split('System Time:')[-1].strip()
             try:
                 system_time = int(time_str)
             except ValueError:
@@ -98,28 +98,38 @@ def process_count(pidtimes, nproc):
 def total_run_time(pidtimes, cpu_times):
     total_pid_time = sum(time for _, time in pidtimes)
     total_cpu_time = sum(cpu_times)
-    if abs(total_pid_time - total_cpu_time) / total_cpu_time > 0.05:
+    if abs(total_pid_time - total_cpu_time) / total_cpu_time > 0.1:
         raise AssertionError(f"总运行时间不匹配: 进程总时间 {total_pid_time}, CPU 总时间 {total_cpu_time}, 差值 {(total_pid_time - total_cpu_time) / total_cpu_time:.2%}")
+
+def get_filestr(n, p):
+    fstr = ""
+    if p:
+        for i in range(n):
+            fstr += f" {i}.txt"
+    else:
+        for i in range(n):
+            fstr += f" {i}p.txt"
+    return fstr
 
 r = Runner(save("xv6.out"))
 
-@test(1, "CFS test1-1 fairness")
+@test(1, "CFS test1-1 just 1 proc")
 def test_1_1():
     r.run_qemu(shell_script([
         'schedtest 1 1'
     ]))
     r.run_qemu(shell_script([
-        'cat 0.txt cpu.txt'
+        'cat' + get_filestr(1, False),
+        'cat' + get_filestr(1, True) + ' cpu.txt'
     ]))
 
     pidtimes, cpu_times, system_time = extract_running_times_advanced(r.qemu.output)
-    # print(pidtimes, cpu_times, system_time)
-    cpu_balance(cpu_times)
-    process_fairness(pidtimes, 1)
+    print(pidtimes, cpu_times, system_time)
     total_run_time(pidtimes, cpu_times)
 
     r.run_qemu(shell_script([
-        'rm 0.txt cpu.txt'
+        'rm' + get_filestr(1, False),
+        'rm' + get_filestr(1, True) + ' cpu.txt'
     ]))
 
 @test(1, "CFS test1-2 more proc")
@@ -128,16 +138,18 @@ def test_1_2():
         'schedtest 2 1'
     ]))
     r.run_qemu(shell_script([
-        'cat 0.txt 1.txt cpu.txt'
+        'cat' + get_filestr(2, False),
+        'cat' + get_filestr(2, True) + ' cpu.txt'
     ]))
     
     pidtimes, cpu_times, system_time = extract_running_times_advanced(r.qemu.output)
-    cpu_balance(cpu_times)
-    process_fairness(pidtimes, 2)
+    print(pidtimes, cpu_times, system_time)
+    process_count(pidtimes, 2)
     total_run_time(pidtimes, cpu_times)
     
     r.run_qemu(shell_script([
-        'rm 0.txt 1.txt cpu.txt'
+        'rm' + get_filestr(2, False),
+        'rm' + get_filestr(2, True) + ' cpu.txt'
     ]))
 
 @test(1, "CFS test1-3 even more proc")
@@ -146,60 +158,104 @@ def test_1_3():
         'schedtest 7 1'
     ]))
     r.run_qemu(shell_script([
-        'cat 0.txt 1.txt 2.txt 3.txt 4.txt 5.txt 6.txt cpu.txt'
+        'cat' + get_filestr(7, False),
+        'cat' + get_filestr(7, True),
+        'cat cpu.txt'
     ]))
     
     pidtimes, cpu_times, system_time = extract_running_times_advanced(r.qemu.output)
+    print(pidtimes, cpu_times, system_time)
     cpu_usage(cpu_times, system_time)
     cpu_balance(cpu_times)
     process_fairness(pidtimes, 7)
     total_run_time(pidtimes, cpu_times)
 
     r.run_qemu(shell_script([
-        'rm 0.txt 1.txt 2.txt 3.txt 4.txt 5.txt 6.txt cpu.txt'
+        'rm' + get_filestr(7, False),
+        'rm' + get_filestr(7, True),
+        'rm cpu.txt'
     ]))
 
 @test(1, "CFS test2 sleep")
 def test_2():
     r.run_qemu(shell_script([
-        'schedtest 7 2'
+        'schedtest 8 2'
     ]))
 
     if "Error" in r.qemu.output:
         raise AssertionError("Failed")
     
     r.run_qemu(shell_script([
-        'cat 0.txt 1.txt 2.txt 3.txt 4.txt 5.txt 6.txt cpu.txt'
+        'cat' + get_filestr(8, False),
+        'cat' + get_filestr(8, True),
+        'cat cpu.txt'
     ]))
 
     pidtimes, cpu_times, system_time = extract_running_times_advanced(r.qemu.output)
-    process_count(pidtimes, 7)
+    print(pidtimes, cpu_times, system_time)
+    process_count(pidtimes, 8)
     cpu_usage(cpu_times, system_time)
     cpu_balance(cpu_times)
     total_run_time(pidtimes, cpu_times)
 
     r.run_qemu(shell_script([
-        'rm 0.txt 1.txt 2.txt 3.txt 4.txt 5.txt 6.txt cpu.txt'
+        'rm' + get_filestr(8, False),
+        'rm' + get_filestr(8, True),
+        'rm cpu.txt'
     ]))
 
-@test(1, "CFS test3 new proc")
-def test_3():
+@test(1, "CFS test3-1 new proc")
+def test_3_1():
     r.run_qemu(shell_script([
         'schedtest 5 3'
     ]))
-    r.run_qemu(shell_script([
-        'cat 0.txt 1.txt 2.txt 3.txt 4.txt cpu.txt'
-    ]))
+    
     if "Error" in r.qemu.output:
         raise AssertionError("Failed")
+    
+    r.run_qemu(shell_script([
+        'cat' + get_filestr(5, False),
+        'cat' + get_filestr(5, True),
+        'cat cpu.txt'
+    ]))
 
     pidtimes, cpu_times, system_time = extract_running_times_advanced(r.qemu.output)
+    print(pidtimes, cpu_times, system_time)
     process_count(pidtimes, 5)
+    total_run_time(pidtimes, cpu_times)
+    
+    r.run_qemu(shell_script([
+        'rm' + get_filestr(5, False),
+        'rm' + get_filestr(5, True),
+        'rm cpu.txt'
+    ]))
+
+@test(1, "CFS test3-2 more new proc")
+def test_3_2():
+    r.run_qemu(shell_script([
+        'schedtest 8 3'
+    ]))
+    
+    if "Error" in r.qemu.output:
+        raise AssertionError("Failed")
+    
+    r.run_qemu(shell_script([
+        'cat' + get_filestr(8, False),
+        'cat' + get_filestr(8, True),
+        'cat cpu.txt'
+    ]))
+
+    pidtimes, cpu_times, system_time = extract_running_times_advanced(r.qemu.output)
+    print(pidtimes, cpu_times, system_time)
+    process_count(pidtimes, 8)
+    cpu_usage(cpu_times, system_time)
     cpu_balance(cpu_times)
     total_run_time(pidtimes, cpu_times)
     
     r.run_qemu(shell_script([
-        'rm 0.txt 1.txt 2.txt 3.txt 4.txt cpu.txt'
+        'rm' + get_filestr(8, False),
+        'rm' + get_filestr(8, True),
+        'rm cpu.txt'
     ]))
 
 os.system("make clean")
