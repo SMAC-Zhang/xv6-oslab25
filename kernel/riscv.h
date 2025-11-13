@@ -1,5 +1,10 @@
+#pragma once
+
+#include "types.h"
+
+
 // which hart (core) is this?
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_mhartid()
 {
   uint64 x;
@@ -15,7 +20,7 @@ r_mhartid()
 #define MSTATUS_MPP_U (0L << 11)
 #define MSTATUS_MIE (1L << 3)    // machine-mode interrupt enable.
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_mstatus()
 {
   uint64 x;
@@ -23,7 +28,7 @@ r_mstatus()
   return x;
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_mstatus(uint64 x)
 {
   asm volatile("csrw mstatus, %0" : : "r" (x));
@@ -32,7 +37,7 @@ w_mstatus(uint64 x)
 // machine exception program counter, holds the
 // instruction address to which a return from
 // exception will go.
-static inline void 
+static inline void __attribute__((unused))
 w_mepc(uint64 x)
 {
   asm volatile("csrw mepc, %0" : : "r" (x));
@@ -61,15 +66,15 @@ w_sstatus(uint64 x)
 }
 
 // Supervisor Interrupt Pending
-static inline uint64
-r_sip()
+static inline uint64 __attribute__((unused))
+r_sip() 
 {
   uint64 x;
   asm volatile("csrr %0, sip" : "=r" (x) );
   return x;
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_sip(uint64 x)
 {
   asm volatile("csrw sip, %0" : : "r" (x));
@@ -79,7 +84,7 @@ w_sip(uint64 x)
 #define SIE_SEIE (1L << 9) // external
 #define SIE_STIE (1L << 5) // timer
 #define SIE_SSIE (1L << 1) // software
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_sie()
 {
   uint64 x;
@@ -87,7 +92,7 @@ r_sie()
   return x;
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_sie(uint64 x)
 {
   asm volatile("csrw sie, %0" : : "r" (x));
@@ -97,7 +102,7 @@ w_sie(uint64 x)
 #define MIE_MEIE (1L << 11) // external
 #define MIE_MTIE (1L << 7)  // timer
 #define MIE_MSIE (1L << 3)  // software
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_mie()
 {
   uint64 x;
@@ -105,7 +110,7 @@ r_mie()
   return x;
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_mie(uint64 x)
 {
   asm volatile("csrw mie, %0" : : "r" (x));
@@ -114,13 +119,13 @@ w_mie(uint64 x)
 // machine exception program counter, holds the
 // instruction address to which a return from
 // exception will go.
-static inline void 
+static inline void __attribute__((unused))
 w_sepc(uint64 x)
 {
   asm volatile("csrw sepc, %0" : : "r" (x));
 }
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_sepc()
 {
   uint64 x;
@@ -129,7 +134,7 @@ r_sepc()
 }
 
 // Machine Exception Delegation
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_medeleg()
 {
   uint64 x;
@@ -137,14 +142,14 @@ r_medeleg()
   return x;
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_medeleg(uint64 x)
 {
   asm volatile("csrw medeleg, %0" : : "r" (x));
 }
 
 // Machine Interrupt Delegation
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_mideleg()
 {
   uint64 x;
@@ -152,7 +157,7 @@ r_mideleg()
   return x;
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_mideleg(uint64 x)
 {
   asm volatile("csrw mideleg, %0" : : "r" (x));
@@ -160,13 +165,13 @@ w_mideleg(uint64 x)
 
 // Supervisor Trap-Vector Base Address
 // low two bits are mode.
-static inline void 
+static inline void __attribute__((unused))
 w_stvec(uint64 x)
 {
   asm volatile("csrw stvec, %0" : : "r" (x));
 }
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_stvec()
 {
   uint64 x;
@@ -175,20 +180,20 @@ r_stvec()
 }
 
 // Machine-mode interrupt vector
-static inline void 
+static inline void __attribute__((unused))
 w_mtvec(uint64 x)
 {
   asm volatile("csrw mtvec, %0" : : "r" (x));
 }
 
 // Physical Memory Protection
-static inline void
+static inline void __attribute__((unused))
 w_pmpcfg0(uint64 x)
 {
   asm volatile("csrw pmpcfg0, %0" : : "r" (x));
 }
 
-static inline void
+static inline void __attribute__((unused))
 w_pmpaddr0(uint64 x)
 {
   asm volatile("csrw pmpaddr0, %0" : : "r" (x));
@@ -201,13 +206,13 @@ w_pmpaddr0(uint64 x)
 
 // supervisor address translation and protection;
 // holds the address of the page table.
-static inline void 
+static inline void __attribute__((unused))
 w_satp(uint64 x)
 {
   asm volatile("csrw satp, %0" : : "r" (x));
 }
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_satp()
 {
   uint64 x;
@@ -216,20 +221,20 @@ r_satp()
 }
 
 // Supervisor Scratch register, for early trap handler in trampoline.S.
-static inline void 
+static inline void __attribute__((unused))
 w_sscratch(uint64 x)
 {
   asm volatile("csrw sscratch, %0" : : "r" (x));
 }
 
-static inline void 
+static inline void __attribute__((unused))
 w_mscratch(uint64 x)
 {
   asm volatile("csrw mscratch, %0" : : "r" (x));
 }
 
 // Supervisor Trap Cause
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_scause()
 {
   uint64 x;
@@ -238,7 +243,7 @@ r_scause()
 }
 
 // Supervisor Trap Value
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_stval()
 {
   uint64 x;
@@ -247,13 +252,13 @@ r_stval()
 }
 
 // Machine-mode Counter-Enable
-static inline void 
+static inline void __attribute__((unused))
 w_mcounteren(uint64 x)
 {
   asm volatile("csrw mcounteren, %0" : : "r" (x));
 }
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_mcounteren()
 {
   uint64 x;
@@ -262,7 +267,7 @@ r_mcounteren()
 }
 
 // machine-mode cycle counter
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_time()
 {
   uint64 x;
@@ -271,28 +276,28 @@ r_time()
 }
 
 // enable device interrupts
-static inline void
+static inline void __attribute__((unused))
 intr_on()
 {
   w_sstatus(r_sstatus() | SSTATUS_SIE);
 }
 
 // disable device interrupts
-static inline void
+static inline void __attribute__((unused))
 intr_off()
 {
   w_sstatus(r_sstatus() & ~SSTATUS_SIE);
 }
 
 // are device interrupts enabled?
-static inline int
+static inline int __attribute__((unused))
 intr_get()
 {
   uint64 x = r_sstatus();
   return (x & SSTATUS_SIE) != 0;
 }
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_sp()
 {
   uint64 x;
@@ -302,7 +307,7 @@ r_sp()
 
 // read and write tp, the thread pointer, which holds
 // this core's hartid (core number), the index into cpus[].
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_tp()
 {
   uint64 x;
@@ -310,13 +315,13 @@ r_tp()
   return x;
 }
 
-static inline void 
-w_tp(uint64 x)
+static inline void __attribute__((unused))
+w_tp(uint64 x) 
 {
   asm volatile("mv tp, %0" : : "r" (x));
 }
 
-static inline uint64
+static inline uint64 __attribute__((unused))
 r_ra()
 {
   uint64 x;
@@ -325,7 +330,7 @@ r_ra()
 }
 
 // flush the TLB.
-static inline void
+static inline void __attribute__((unused))
 sfence_vma()
 {
   // the zero, zero means flush all TLB entries.

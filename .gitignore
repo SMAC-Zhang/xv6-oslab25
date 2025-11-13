@@ -20,5 +20,7 @@ myapi.key
 xv6.out*
 .vagrant/
 submissions/
-ph
-barrier
+compile_commands.json
+.gdb_history
+.cache/
+.vscode/
