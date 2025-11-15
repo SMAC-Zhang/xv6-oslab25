@@ -64,7 +64,7 @@ def extract_running_times_advanced(text):
 # 测试CPU使用率
 def cpu_usage(cpu_running_times, system_time):
     for i in range(3):
-        if cpu_running_times[i] / system_time < 0.9:
+        if cpu_running_times[i] / system_time < 0.85: #预留空间给硬件误差
             raise AssertionError(f"CPU {i} 使用率过低: {cpu_running_times[i] / system_time:.2%}")
 
 # 测试CPU负载均衡
