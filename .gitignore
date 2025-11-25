@@ -11,6 +11,7 @@ entryother
 initcode
 initcode.out
 kernelmemfs
+mkfs
 kernel/kernel
 user/usys.S
 .gdbinit
@@ -19,6 +20,7 @@ myapi.key
 xv6.out*
 .vagrant/
 submissions/
-ph
-barrier
-.idea/
+compile_commands.json
+.gdb_history
+.cache/
+.vscode/
